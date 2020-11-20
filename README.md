@@ -2,7 +2,7 @@
 
 This is a Paper plugin to provide useful functions for playing Varo (Minecraft vanilla team pvp game). It's just a really basic implementation with some funny personal jokes, lol.
 
-Be careful, everything text is written in German.
+Be careful, every text is written in German.
 
 This game uses many discord webhooks (or may use many discord webhooks) to announce deaths/joins/worldborder changes...
 
