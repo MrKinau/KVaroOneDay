@@ -12,7 +12,7 @@ class VaroConfig {
     var deathsWebhooks: List<String> = listOf("https://discordapp.com/api/webhooks/adminChannel", "https://discordapp.com/api/webhooks/deathsChannel")
     var worldborderWebhooks: List<String> = listOf("https://discordapp.com/api/webhooks/adminChannel", "https://discordapp.com/api/webhooks/loginChannel")
     var locationLeakWebhooks: List<String> = listOf("https://discordapp.com/api/webhooks/adminChannel", "https://discordapp.com/api/webhooks/loginChannel")
-
+    var damageDealtWebhooks: List<String> = listOf("https://discordapp.com/api/webhooks/adminChannel")
 
     val startLoginTime: Int = 14
     val endLoginTime: Int = 22
@@ -22,4 +22,6 @@ class VaroConfig {
     val discordName: String = "Varo"
     
     val dailyBorderDiff: Int = -200
+
+    val spawnPoint: String = "world/3/91/-52"
 }

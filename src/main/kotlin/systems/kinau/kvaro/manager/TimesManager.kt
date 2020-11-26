@@ -28,6 +28,7 @@ class TimesManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin> {
     private val loginTimes: MutableMap<UUID, Long> = mutableMapOf()
     private val logOffBukkitTasks: MutableMap<UUID, BukkitTask> = mutableMapOf()
     private val logOffTasks: MutableMap<UUID, LogOffTask> = mutableMapOf()
+    public val damageDealt: MutableList<UUID> = mutableListOf();
 
     init {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, Runnable {
@@ -42,21 +43,22 @@ class TimesManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin> {
     fun canJoin(player: Player) : Boolean {
         val timestamp = Timestamp(System.currentTimeMillis())
         if (!(timestamp.after(todayStart) && timestamp.before(todayEnd))) {
-            return if (Bukkit.getOfflinePlayer(player.uniqueId).isOp)  {
-                plugin.discordManager.sendLoginMessage(player)
-                true
-            } else false
+            return Bukkit.getOfflinePlayer(player.uniqueId).isOp
         } else {
             plugin.discordManager.sendLoginMessage(player)
-            if (timesData.config.savedTimes.containsKey(player.uniqueId.toString()))
-                loginTimes[player.uniqueId] = System.currentTimeMillis() - (timesData.config.savedTimes[player.uniqueId.toString()] ?: error("player has no savedTime"))
-            else
-                loginTimes[player.uniqueId] = timestamp.time
+            if (plugin.varoData.config.started) {
+                if (timesData.config.savedTimes.containsKey(player.uniqueId.toString()))
+                    loginTimes[player.uniqueId] = System.currentTimeMillis() - (timesData.config.savedTimes[player.uniqueId.toString()]
+                            ?: error("player has no savedTime"))
+                else
+                    loginTimes[player.uniqueId] = timestamp.time
+            }
             return true
         }
     }
 
     fun logout(player: Player) {
+        damageDealt.remove(player.uniqueId)
         if (loginTimes.containsKey(player.uniqueId)) {
             timesData.config.savedTimes[player.uniqueId.toString()] = System.currentTimeMillis() - loginTimes[player.uniqueId]!!
             timesData.save()

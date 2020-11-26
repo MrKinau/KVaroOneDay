@@ -5,6 +5,7 @@ import br.com.devsrsouza.kotlinbukkitapi.extensions.event.events
 import org.bukkit.BanList
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
+import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
@@ -32,6 +33,9 @@ Ist halt einfach dumm, wenn man es zu anderen Zeiten versucht
             if (varoData.config.started) return@event
             player.gameMode = GameMode.ADVENTURE
             player.sendMessage("§c§lHALT! §bDas Varo hat noch nicht begonnen. Du bist nun im Adventuremode")
+            val spawnData = varoConfig.config.spawnPoint.split("/");
+            val spawnPoint = Location(Bukkit.getWorld(spawnData[0]), spawnData[1].toDouble(), spawnData[2].toDouble(), spawnData[3].toDouble())
+            player.teleport(spawnPoint)
         }
 
         event<PlayerQuitEvent> {
@@ -56,6 +60,16 @@ Ist halt einfach dumm, wenn man es zu anderen Zeiten versucht
         event<EntityDamageByEntityEvent> {
             if (damager is Player && !varoData.config.started && !damager.isOp)
                 isCancelled = true
+        }
+
+        event<EntityDamageByEntityEvent> {
+            if (entity is Player && damager is Player && varoData.config.started) {
+                println("${damager.name} damaged ${entity.name} with $damage")
+                if (!timesManager.damageDealt.contains(damager.uniqueId)) {
+                    timesManager.damageDealt.add(damager.uniqueId)
+                }
+                discordManager.sendDamageDealt(damager as Player , entity as Player)
+            }
         }
 
     }
