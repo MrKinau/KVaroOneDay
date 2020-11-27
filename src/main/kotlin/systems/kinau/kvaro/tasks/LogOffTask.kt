@@ -8,7 +8,7 @@ import java.util.function.Consumer
 class LogOffTask(override val plugin: KVaroPlugin, private val player: Player, private val callBack: Consumer<Boolean>, private var counter: Int = 30): Runnable, WithPlugin<KVaroPlugin> {
 
     override fun run() {
-        if ((counter % 10 == 0 && counter > 0) || counter in 1..9) player.sendMessage("§cDeine Zeit läuft in $counter Sekunden ab!")
+        if ((counter % 10 == 0 && counter > 0) || counter in 2..9) player.sendMessage("§cDeine Zeit läuft in $counter Sekunden ab!")
         else if (counter == 1) player.sendMessage("§cDeine Zeit läuft in $counter Sekunde ab!")
         else if (counter <= 0) {
             callBack.accept(true)
