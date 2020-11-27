@@ -10,7 +10,7 @@ class LogOffTask(override val plugin: KVaroPlugin, private val player: Player, p
     override fun run() {
         if ((counter % 10 == 0 && counter > 0) || counter in 1..9) player.sendMessage("§cDeine Zeit läuft in $counter Sekunden ab!")
         else if (counter == 1) player.sendMessage("§cDeine Zeit läuft in $counter Sekunde ab!")
-        else {
+        else if (counter <= 0) {
             callBack.accept(true)
             player.sendMessage("§4Deine Zeit ist abgelaufen! Disconnecte, wenn du nicht gerade um dein Leben kämpfst!")
             println(player.name + "${player.name} should log off ----")
