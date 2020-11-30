@@ -7,6 +7,7 @@ import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.entity.Player
+import org.bukkit.entity.Projectile
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.PlayerDeathEvent
@@ -67,8 +68,15 @@ Ist halt einfach dumm, wenn man es zu anderen Zeiten versucht
                 println("${damager.name} damaged ${entity.name} with $damage")
                 if (!timesManager.damageDealt.contains(damager.uniqueId)) {
                     timesManager.damageDealt.add(damager.uniqueId)
+                    discordManager.sendDamageDealt(damager as Player , entity as Player)
                 }
-                discordManager.sendDamageDealt(damager as Player , entity as Player)
+            } else if (entity is Player && damager is Projectile && (damager as Projectile).shooter is Player && varoData.config.started) {
+                val shooter: Player = (damager as Projectile).shooter as Player
+                println("${damager.javaClass.simpleName} from ${shooter.name} damaged ${entity.name} with $damage")
+                if (!timesManager.damageDealt.contains(shooter.uniqueId)) {
+                    timesManager.damageDealt.add(shooter.uniqueId)
+                    discordManager.sendDamageDealt(shooter , entity as Player)
+                }
             }
         }
 

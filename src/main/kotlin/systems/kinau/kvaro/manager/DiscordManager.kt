@@ -124,7 +124,7 @@ class DiscordManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin>
             webhook.send(WebhookMessageBuilder()
                     .addEmbeds(WebhookEmbedBuilder()
                             .setColor(0xff7200)
-                            .setTitle(WebhookEmbed.EmbedTitle("Punishment: Koordinaten-Leak", null))
+                            .setTitle(WebhookEmbed.EmbedTitle("Damageinfo", null))
                             .setDescription("\n${damager.name} hat ${damaged.name} angegriffen!\n")
                             .setThumbnailUrl("https://cravatar.eu/helmhead/${damager.uniqueId.toString().replace("-", "").toLowerCase()}/256.png")
                             .build())

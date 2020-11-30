@@ -79,7 +79,7 @@ class VaroManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin> {
         val nextChange: Long = plugin.varoData.config.nextWorldborderChange
         if (nextChange < 0) return
         if (System.currentTimeMillis() > nextChange) {
-            changeWorldBorder(-plugin.varoConfig.config.dailyBorderDiff)
+            changeWorldBorder(plugin.varoConfig.config.dailyBorderDiff)
             plugin.varoData.config.nextWorldborderChange = LocalDate.now().atStartOfDay().plusDays(1).toInstant(OffsetDateTime.now().offset).toEpochMilli()
             plugin.varoData.save()
             plugin.timesManager.resetTimes()
