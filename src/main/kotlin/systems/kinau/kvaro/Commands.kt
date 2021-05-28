@@ -1,6 +1,7 @@
 package systems.kinau.kvaro
 
 import br.com.devsrsouza.kotlinbukkitapi.dsl.command.command
+import net.md_5.bungee.api.ChatColor
 import net.minecraft.server.v1_16_R3.NBTCompressedStreamTools
 import net.minecraft.server.v1_16_R3.NBTTagCompound
 import org.bukkit.Bukkit
@@ -8,12 +9,14 @@ import org.bukkit.OfflinePlayer
 import systems.kinau.kvaro.tasks.StartTask
 import java.io.File
 import java.io.FileInputStream
+import java.text.DecimalFormat
 import java.util.*
 import kotlin.math.roundToInt
 
 internal fun KVaroPlugin.registerCommands() {
     registerStartCommand(this)
     registerLeakLocationCommand(this)
+    registerSimpleTeamCommand(this)
 }
 
 fun registerStartCommand(plugin: KVaroPlugin) {
@@ -29,7 +32,7 @@ fun registerStartCommand(plugin: KVaroPlugin) {
                 return@executor
             }
 
-            if (plugin.startTask?.isCancelled == true) {
+            if (plugin.startTask != null) {
                 sender.sendMessage("§cSache ma, der Counter läuft doch gerade noch, wat soll'n det!")
                 return@executor
             }
@@ -69,6 +72,40 @@ fun registerLeakLocationCommand(plugin: KVaroPlugin) {
                         .filter { it.startsWith(args[0]) }
             else
                 listOf()
+        }
+    }
+}
+
+fun registerSimpleTeamCommand(plugin: KVaroPlugin) {
+    val formatter = DecimalFormat("00")
+    command("simpleteam", plugin = plugin) {
+        executor {
+            if (sender.isOp) {
+                if (args.isNotEmpty()) {
+                    val scoreboard = Bukkit.getScoreboardManager()?.mainScoreboard ?: return@executor
+                    val nextTeamId = scoreboard.teams.size + 1
+                    val teamName = "t" + formatter.format(nextTeamId)
+                    val displayName = "T" + formatter.format(nextTeamId)
+                    val prefix = "[T" + formatter.format(nextTeamId) + "] "
+                    val team = scoreboard.registerNewTeam(teamName)
+
+                    team.displayName = displayName
+                    team.prefix = prefix
+                    team.suffix = "§r";
+                    team.setAllowFriendlyFire(false)
+                    args.forEach { arg ->
+                        if (arg.startsWith("#")) {
+                            team.prefix = ChatColor.of(arg).toString() + prefix + ChatColor.RESET.toString()
+                        }
+                        team.addEntry(arg)
+                    }
+                    team.entries.forEach { entry ->
+                        Bukkit.getPlayer(entry)?.setPlayerListName(team.prefix + entry + team.suffix)
+                        Bukkit.getPlayer(entry)?.setDisplayName(team.prefix + entry + team.suffix)
+                    }
+                    sender.sendMessage("§aTeam §6$displayName §aerstellt!")
+                } else sender.sendMessage("Dumm? /simpleteam <Spieler1> <Spieler2> [#rrggbb]")
+            } else sender.sendMessage("§cHätteste gedacht ich bin dumm, wa? Ne hascht kene Rechte!")
         }
     }
 }

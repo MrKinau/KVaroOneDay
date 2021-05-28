@@ -35,7 +35,7 @@ class DiscordManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin>
                     .addEmbeds(WebhookEmbedBuilder()
                             .setColor(0x3de018)
                             .setTitle(WebhookEmbed.EmbedTitle("${player.name} beigetreten", null))
-                            .setDescription("\n${player.displayName} hat den Server betreten!")
+                            .setDescription("\n${player.name} hat den Server betreten!")
                             .setThumbnailUrl("https://cravatar.eu/helmhead/${player.uniqueId.toString().replace("-", "").toLowerCase()}/256.png")
                             .build())
                     .setUsername(discordName)
@@ -50,22 +50,7 @@ class DiscordManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin>
                     .addEmbeds(WebhookEmbedBuilder()
                             .setColor(0xed3859)
                             .setTitle(WebhookEmbed.EmbedTitle("${player.name} verlassen", null))
-                            .setDescription("\n${player.displayName} hat den Server verlassen!")
-                            .setThumbnailUrl("https://cravatar.eu/helmhead/${player.uniqueId.toString().replace("-", "").toLowerCase()}/256.png")
-                            .build())
-                    .setUsername(discordName)
-                    .build())
-        }
-    }
-
-    fun sendShouldLogoutMessage(player: Player) {
-        val webHooks: List<WebhookClient> = plugin.varoConfig.config.shouldLogoutWebhooks.map { WebhookClient.withUrl(it) }
-        webHooks.forEach { webhook ->
-            webhook.send(WebhookMessageBuilder()
-                    .addEmbeds(WebhookEmbedBuilder()
-                            .setColor(0x164ce0)
-                            .setTitle(WebhookEmbed.EmbedTitle("${addGenetiveS(player.name)} Zeit ist vorbei", null))
-                            .setDescription("\n${player.displayName} sollte demnächst den Server verlassen!")
+                            .setDescription("\n${player.name} hat den Server verlassen!")
                             .setThumbnailUrl("https://cravatar.eu/helmhead/${player.uniqueId.toString().replace("-", "").toLowerCase()}/256.png")
                             .build())
                     .setUsername(discordName)
@@ -80,7 +65,7 @@ class DiscordManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin>
                     .addEmbeds(WebhookEmbedBuilder()
                             .setColor(0xf99922)
                             .setTitle(WebhookEmbed.EmbedTitle("Worldborder angepasst", null))
-                            .setDescription("\nDie WorldBorder in \"$worldName\" wurde auf ${size}x${size} Blöcke angepasst!\n\nEcken bei: -${size / 2}/-${size / 2} und ${size / 2}/${size / 2}")
+                            .setDescription("\nDie WorldBorder in \"$worldName\" ist nun auf ${size}x${size} Blöcke angepasst!\n\nEcken bei: -${size / 2}/-${size / 2} und ${size / 2}/${size / 2}")
                             .setThumbnailUrl("https://cdn.discordapp.com/icons/606506021221040148/578e19ba3eb7f0ed0c42990cf5f29ec3.webp?size=512")
                             .build())
                     .setUsername(discordName)
@@ -131,13 +116,6 @@ class DiscordManager(override val plugin: KVaroPlugin) : WithPlugin<KVaroPlugin>
                     .setUsername(discordName)
                     .build())
         }
-    }
-
-    private fun addGenetiveS(name: String) : String {
-        return if (!(name.endsWith("s") || name.endsWith("z")))
-            name + "s"
-        else
-            "$name'"
     }
 
 }

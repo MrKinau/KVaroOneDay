@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class VaroData {
 
-    var started: Boolean = false;
-    var nextWorldborderChange: Long = -1;
-
+    var started: Boolean = false
+    var secondsPassed: Int = -1
+    val teamKills: HashMap<String, Int> = HashMap()
 }

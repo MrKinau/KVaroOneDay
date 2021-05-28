@@ -2,51 +2,53 @@ package systems.kinau.kvaro.listener
 
 import br.com.devsrsouza.kotlinbukkitapi.extensions.event.event
 import br.com.devsrsouza.kotlinbukkitapi.extensions.event.events
+import net.md_5.bungee.api.ChatColor
 import org.bukkit.BanList
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
-import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.event.entity.ItemSpawnEvent
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.world.ChunkLoadEvent
+import org.bukkit.scoreboard.Team
 import systems.kinau.kvaro.KVaroPlugin
 
 fun KVaroPlugin.registerListener() {
-    val kickReason = """§cDer Server ist nur zwischen ${varoConfig.config.startLoginTime} und ${varoConfig.config.endLoginTime} Uhr offen
-
-Ist halt einfach dumm, wenn man es zu anderen Zeiten versucht
-
-§eFun fact: Jeder fünfte Österreicher hält sich für nicht kompetent!"""
-
 
     events {
-        event<PlayerLoginEvent> {
-            if (result == PlayerLoginEvent.Result.ALLOWED && !timesManager.canJoin(player))
-                disallow(PlayerLoginEvent.Result.KICK_OTHER, kickReason)
-        }
 
         event<PlayerJoinEvent> {
-            if (varoData.config.started) return@event
-            player.gameMode = GameMode.ADVENTURE
-            player.sendMessage("§c§lHALT! §bDas Varo hat noch nicht begonnen. Du bist nun im Adventuremode")
-            val spawnData = varoConfig.config.spawnPoint.split("/");
-            val spawnPoint = Location(Bukkit.getWorld(spawnData[0]), spawnData[1].toDouble(), spawnData[2].toDouble(), spawnData[3].toDouble())
-            player.teleport(spawnPoint)
+            discordManager.sendLoginMessage(player)
+            scoreboardManager.showScoreboard(player)
+
+            if (!varoData.config.started) {
+                player.gameMode = GameMode.ADVENTURE
+                player.sendMessage(ChatColor.of("#ff0000").toString() + "HALT! §r§bDas Varo hat noch nicht begonnen. Du bist nun im Adventuremode")
+                player.teleport(varoConfig.config.spawnPoint.toBukkitLoc())
+            }
+
+            val scoreboard = Bukkit.getScoreboardManager()?.mainScoreboard ?: return@event
+            val team: Team = scoreboard.getEntryTeam(player.name) ?: return@event
+            player.setPlayerListName(team.prefix + player.name + team.suffix)
+            player.setDisplayName(team.prefix + player.name + team.suffix)
+            player.isGlowing = false
         }
 
         event<PlayerQuitEvent> {
             discordManager.sendLogoutMessage(player)
-            timesManager.logout(player)
         }
 
         event<PlayerDeathEvent> {
             if (!varoData.config.started) return@event
             if (deathMessage != null) discordManager.sendDeathMessage(deathMessage!!)
+            fightManager.countKill(entity.uniqueId)
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 Bukkit.getBanList(BanList.Type.NAME).addBan(entity.name, "§cDu bist ausgeschieden, weil du zu schlecht warst!", null, null)
                 entity.kickPlayer("§cJa lol ey, weg vom Fenster. Schade aber auch!\n\n§c$deathMessage")
@@ -64,20 +66,52 @@ Ist halt einfach dumm, wenn man es zu anderen Zeiten versucht
         }
 
         event<EntityDamageByEntityEvent> {
-            if (entity is Player && damager is Player && varoData.config.started) {
-                println("${damager.name} damaged ${entity.name} with $damage")
-                if (!timesManager.damageDealt.contains(damager.uniqueId)) {
-                    timesManager.damageDealt.add(damager.uniqueId)
-                    discordManager.sendDamageDealt(damager as Player , entity as Player)
+            if (!varoData.config.started) return@event
+            if (entity !is Player) return@event
+            if (damager is Player) {
+                if ((plugin as KVaroPlugin).gameCountdown?.isSafeTime() == true) {
+                    isCancelled = true
+                    return@event
                 }
-            } else if (entity is Player && damager is Projectile && (damager as Projectile).shooter is Player && varoData.config.started) {
+                val allDamageDealt = fightManager.addFightAction(damager.uniqueId, entity.uniqueId, damage)
+                println("${damager.name} damaged ${entity.name} with $damage (all: $allDamageDealt)")
+            } else if (damager is Projectile && (damager as Projectile).shooter is Player) {
+                if ((plugin as KVaroPlugin).gameCountdown?.isSafeTime() == true) {
+                    isCancelled = true
+                    return@event
+                }
                 val shooter: Player = (damager as Projectile).shooter as Player
-                println("${damager.javaClass.simpleName} from ${shooter.name} damaged ${entity.name} with $damage")
-                if (!timesManager.damageDealt.contains(shooter.uniqueId)) {
-                    timesManager.damageDealt.add(shooter.uniqueId)
-                    discordManager.sendDamageDealt(shooter , entity as Player)
+                val allDamageDealt = fightManager.addFightAction(shooter.uniqueId, entity.uniqueId, damage)
+                println("${damager.javaClass.simpleName} from ${shooter.name} damaged ${entity.name} with $damage (all: $allDamageDealt)")
+            }
+        }
+
+        event<ChunkLoadEvent> {
+            if (chunk.contains(Material.BREWING_STAND.createBlockData())) {
+                for (x in 0..15) {
+                    for (y in 0..255) {
+                        for (z in 0..15) {
+                            if (chunk.getBlock(x, y, z).type == Material.BREWING_STAND) {
+                                chunk.getBlock(x, y, z).type = Material.AIR
+                                println("REMOVED ILLEGAL BREWING STAND AT: ${(chunk.x shl 4) + x}/$y/${(chunk.z shl 4) + z}")
+                            }
+                        }
+                    }
                 }
             }
+        }
+
+        event<ItemSpawnEvent> {
+            if (entity.itemStack.type == Material.BREWING_STAND) {
+                isCancelled = true
+                entity.remove()
+            }
+        }
+
+        event<PlayerInteractEvent> {
+            if (clickedBlock == null) return@event
+            if (clickedBlock?.type == Material.BREWING_STAND)
+                clickedBlock?.type = Material.AIR
         }
 
     }
