@@ -9,7 +9,7 @@ import kotlin.math.ceil
 class StartTask(override val plugin: KVaroPlugin, private var counter: Int = 60): Runnable, WithPlugin<KVaroPlugin> {
 
     private val claims = listOf("%s hat den Start verpennt", "%s wird als erstes sterben", "%s wird den Stegi machen",
-            "%s versteht 1.9er PvP nicht", "%s überlebt die 2. Nacht nicht", "%s <TODO: Joke über Leon einfügen>",
+            "%s versteht 1.9er PvP nicht", "%s überlebt die 2. Nacht nicht", "<TODO: Joke über Leon einfügen>",
             "%s ist vom Himmel gefallen", "fretoger plant schon ein neues Projekt", "%s wird gewinnen", "MinecraftiUndCo ist \"kurz\" afk",
             "%s hat seinen Teampartner vergessen", "%s findet niemals Dias", "%s wird in der Hölle verglühen")
 

@@ -68,9 +68,15 @@ fun KVaroPlugin.registerListener() {
         event<EntityDamageByEntityEvent> {
             if (!varoData.config.started) return@event
             if (entity !is Player) return@event
+            val playerTeam = Bukkit.getScoreboardManager()?.mainScoreboard?.getEntryTeam(entity.name)
             if (damager is Player) {
                 if ((plugin as KVaroPlugin).gameCountdown?.isSafeTime() == true) {
                     isCancelled = true
+                    return@event
+                }
+                val damagerTeam = Bukkit.getScoreboardManager()?.mainScoreboard?.getEntryTeam(damager.name)
+                if (playerTeam?.name.equals(damagerTeam?.name)) {
+                    isCancelled = true;
                     return@event
                 }
                 val allDamageDealt = fightManager.addFightAction(damager.uniqueId, entity.uniqueId, damage)
@@ -81,6 +87,11 @@ fun KVaroPlugin.registerListener() {
                     return@event
                 }
                 val shooter: Player = (damager as Projectile).shooter as Player
+                val damagerTeam = Bukkit.getScoreboardManager()?.mainScoreboard?.getEntryTeam(shooter.name)
+                if (playerTeam?.name.equals(damagerTeam?.name)) {
+                    isCancelled = true;
+                    return@event
+                }
                 val allDamageDealt = fightManager.addFightAction(shooter.uniqueId, entity.uniqueId, damage)
                 println("${damager.javaClass.simpleName} from ${shooter.name} damaged ${entity.name} with $damage (all: $allDamageDealt)")
             }
